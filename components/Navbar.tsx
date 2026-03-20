@@ -1,8 +1,10 @@
-import { View, Text, StyleSheet } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
 import { Ionicons, Feather } from "@expo/vector-icons"
+import { useRouter } from "expo-router"
 import { useFonts } from "expo-font"
 
 export default function Navbar() {
+    const router = useRouter();
     const [fontsLoaded] = useFonts({
         'SNPro': require('../assets/fonts/SNPro-VariableFont_wght.ttf'),
     });
@@ -13,9 +15,9 @@ export default function Navbar() {
                 <Ionicons name="shirt" size={24} color="black" />
             </View>
 
-            <View>
+            <TouchableOpacity onPress={() => router.push("/search")}>
                 <Feather name="search" size={24} color="black" />
-            </View>
+            </TouchableOpacity>
         </View>
     );
 }
