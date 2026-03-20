@@ -85,7 +85,7 @@ export default function Index() {
         />
         {errors.Password && <Text style={{ color: "#EF4444", fontSize: 12, fontFamily: "SNPro", marginLeft: 4 }}>{errors.Password.message as string}</Text>}
 
-        <TouchableOpacity style={{ width: 300, height: 54, borderRadius: 16, backgroundColor: "#000", justifyContent: "center", alignItems: "center", marginTop: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 5, elevation: 5 }} onPress={handleSubmit(onSubmit)}>
+        <TouchableOpacity style={{ width: 300, height: 54, borderRadius: 16, backgroundColor: "#000", justifyContent: "center", alignItems: "center", marginTop: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 5, elevation: 5 }} onPress={() => router.push("/(main)/home")}>
           <Text style={{ color: "#fff", fontSize: 18, fontWeight: "800", fontFamily: "SNPro" }}>Sign In</Text>
         </TouchableOpacity>
 
