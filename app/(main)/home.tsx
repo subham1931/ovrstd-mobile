@@ -1,6 +1,6 @@
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -25,36 +25,34 @@ const PRODUCTS = [
     { title: "Slate Cap", price: "₹899", img: Images[2] },
 ];
 
-export default function home() {
+export default function Home() {
     const flatListRef = useRef<FlatList>(null);
-    const [currentIndex, setCurrentIndex] = useState(Images.length * 500);
+    const currentIndexRef = useRef(Images.length * 500);
     const intervalRef = useRef<any>(null);
     const [containerWidth, setContainerWidth] = useState(0);
 
-    const startAutoPlay = () => {
-        stopAutoPlay();
-        intervalRef.current = setInterval(() => {
-            setCurrentIndex((prev) => {
-                const next = prev + 1;
-                flatListRef.current?.scrollToIndex({ index: next, animated: true });
-                return next;
-            });
-        }, 3000);
-    };
-
-    const stopAutoPlay = () => {
+    const stopAutoPlay = useCallback(() => {
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
         }
-    };
+    }, []);
+
+    const startAutoPlay = useCallback(() => {
+        stopAutoPlay();
+        intervalRef.current = setInterval(() => {
+            const next = currentIndexRef.current + 1;
+            currentIndexRef.current = next;
+            flatListRef.current?.scrollToIndex({ index: next, animated: true });
+        }, 3000);
+    }, [stopAutoPlay]);
 
     useEffect(() => {
         if (containerWidth > 0) {
             startAutoPlay();
         }
         return () => stopAutoPlay();
-    }, [containerWidth]);
+    }, [containerWidth, startAutoPlay, stopAutoPlay]);
 
     return (
         <SafeAreaView style={style.home}>
@@ -85,7 +83,7 @@ export default function home() {
                                 onScrollBeginDrag={stopAutoPlay}
                                 onMomentumScrollEnd={(e) => {
                                     const index = Math.round(e.nativeEvent.contentOffset.x / containerWidth);
-                                    setCurrentIndex(index);
+                                    currentIndexRef.current = index;
                                     startAutoPlay();
                                 }}
                             />
