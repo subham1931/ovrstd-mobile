@@ -52,3 +52,8 @@ export const getUserProfile = async (userId) => {
     const res = await api.get(`/auth/${userId}`);
     return res.data;
 };
+
+export const getProfile = async () => {
+    const res = await api.get("/auth/profile");
+    return res.data;
+};

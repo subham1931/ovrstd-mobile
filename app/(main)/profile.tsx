@@ -5,15 +5,23 @@ import { useRouter } from "expo-router";
 import { Text, View, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
+import { getProfile } from "@/api/auth/auth";
 
 interface User {
   _id: string;
   username: string;
   email: string;
-  role: string;
+  phone?: string;
+  gender?: string;
   profileImage?: string;
+  address?: any[];
+  wishlist?: any[];
+  cart?: any[];
+  orders?: any[];
+  tier?: string;
+  isActive?: boolean;
   createdAt: string;
 }
 
@@ -24,12 +32,17 @@ export default function Profile() {
 
   const loadUserData = useCallback(async () => {
     try {
+      const response = await getProfile();
+      if (response.user) {
+        setUser(response.user);
+        await SecureStore.setItemAsync("userData", JSON.stringify(response.user));
+      }
+    } catch (error: any) {
+      console.log("Error fetching profile:", error);
       const userData = await SecureStore.getItemAsync("userData");
       if (userData) {
         setUser(JSON.parse(userData));
       }
-    } catch (error) {
-      console.log("Error loading user data:", error);
     } finally {
       setIsLoading(false);
     }
