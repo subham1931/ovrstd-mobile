@@ -57,13 +57,16 @@ export default function Profile() {
       <Navbar />
       <View style={style.profileContainer}>
         <View style={style.profileHeader}>
-          <Image
-            source={user?.profileImage 
-              ? { uri: `${BASE_URL}${user.profileImage}` }
-              : require("@/assets/images/user.png")
-            }
-            style={style.profileImage}
-          />
+          {user?.profileImage && user.profileImage.startsWith('http') ? (
+            <Image
+              source={{ uri: user.profileImage }}
+              style={style.profileImage}
+            />
+          ) : (
+            <View style={style.defaultAvatar}>
+              <Ionicons name="person" size={50} color="#9CA3AF" />
+            </View>
+          )}
           <Text style={style.profileName}>{user?.username || "Guest"}</Text>
           <Text style={style.profileEmail}>{user?.email || ""}</Text>
         </View>
@@ -125,8 +128,16 @@ const style = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     alignSelf: "center",
-    // marginBottom: 16,
-    backgroundColor: "#C7C6C6",
+    backgroundColor: "#E5E7EB",
+  },
+  defaultAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignSelf: "center",
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
   },
   profileName: {
     fontSize: 24,
