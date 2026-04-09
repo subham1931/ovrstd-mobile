@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
+import * as Location from "expo-location";
 import { useFocusEffect } from "@react-navigation/native";
 import { addAddress, updateAddress, deleteAddress } from "@/api/auth/auth";
 
@@ -48,6 +49,50 @@ export default function MyAddress() {
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [formData, setFormData] = useState(emptyAddress);
   const [error, setError] = useState("");
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+
+  const useCurrentLocation = async () => {
+    setIsGettingLocation(true);
+    setError("");
+    
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setError("Location permission denied. Please enable it in settings.");
+        setIsGettingLocation(false);
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      const [geocode] = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+
+      if (geocode) {
+        setFormData(prev => ({
+          ...prev,
+          street: [geocode.streetNumber, geocode.street, geocode.name]
+            .filter(Boolean)
+            .join(", ") || prev.street,
+          city: geocode.city || geocode.subregion || prev.city,
+          state: geocode.region || prev.state,
+          postalCode: geocode.postalCode || prev.postalCode,
+          country: geocode.country || prev.country,
+        }));
+      } else {
+        setError("Could not find address for your location");
+      }
+    } catch (err) {
+      console.log("Location error:", err);
+      setError("Failed to get current location. Please try again.");
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
 
   const loadAddresses = useCallback(async () => {
     try {
@@ -102,25 +147,23 @@ export default function MyAddress() {
     setError("");
 
     try {
+      let updatedAddresses: Address[];
+      
       if (editingAddress) {
-        await updateAddress(editingAddress._id, formData);
+        const response = await updateAddress(editingAddress._id, formData);
+        updatedAddresses = response.address || [];
       } else {
-        await addAddress(formData);
+        const response = await addAddress(formData);
+        updatedAddresses = response.address || [];
       }
 
+      // Update local storage with server response
       const userData = await SecureStore.getItemAsync("userData");
       if (userData) {
         const parsed = JSON.parse(userData);
-        if (editingAddress) {
-          const index = parsed.address.findIndex((a: Address) => a._id === editingAddress._id);
-          if (index !== -1) {
-            parsed.address[index] = { ...parsed.address[index], ...formData };
-          }
-        } else {
-          parsed.address.push({ ...formData, _id: Date.now().toString() });
-        }
+        parsed.address = updatedAddresses;
         await SecureStore.setItemAsync("userData", JSON.stringify(parsed));
-        setAddresses(parsed.address);
+        setAddresses(updatedAddresses);
       }
 
       setModalVisible(false);
@@ -250,6 +293,21 @@ export default function MyAddress() {
           </View>
 
           <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+            <TouchableOpacity
+              style={styles.locationButton}
+              onPress={useCurrentLocation}
+              disabled={isGettingLocation}
+            >
+              {isGettingLocation ? (
+                <ActivityIndicator size="small" color="#000" />
+              ) : (
+                <Ionicons name="location" size={20} color="#000" />
+              )}
+              <Text style={styles.locationButtonText}>
+                {isGettingLocation ? "Getting Location..." : "Use Current Location"}
+              </Text>
+            </TouchableOpacity>
+
             <Text style={styles.label}>Full Name *</Text>
             <TextInput
               style={styles.input}
@@ -553,5 +611,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     fontFamily: "SNPro",
+  },
+  locationButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F3F4F6",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    marginBottom: 16,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderStyle: "dashed",
+  },
+  locationButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    fontFamily: "SNPro",
+    color: "#000",
   },
 });

@@ -12,6 +12,7 @@ export const authRegister = async (formData) => {
         headers: {
             "Content-Type": "multipart/form-data",
         },
+        timeout: 60000,
     });
     return res.data;
 };

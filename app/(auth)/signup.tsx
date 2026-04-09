@@ -55,7 +55,7 @@ export default function Signup() {
         animateToStep(1);
       }
     } else if (currentStep === 1) {
-      const isValid = await trigger(["gender"]);
+      const isValid = await trigger(["phone", "gender"]);
       if (isValid) {
         animateToStep(2);
       }
@@ -123,8 +123,6 @@ export default function Signup() {
         setSignupError("Registration failed. Please try again.");
       }
     } catch (error: any) {
-      console.log("Signup error:", error);
-
       if (error.code === "ERR_NETWORK" || !error.response) {
         setSignupError("Cannot connect to server. Please check your connection.");
       } else if (error.response?.status === 409) {
