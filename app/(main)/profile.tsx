@@ -2,22 +2,70 @@ import Navbar from "@/components/Navbar";
 import { Ionicons } from "@expo/vector-icons";
 import Feather from "@expo/vector-icons/build/Feather";
 import { useRouter } from "expo-router";
-import { Text, View, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { Text, View, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as SecureStore from "expo-secure-store";
+import { useEffect, useState } from "react";
+import { BASE_URL } from "@/api/config";
+
+interface User {
+  _id: string;
+  username: string;
+  email: string;
+  role: string;
+  profileImage?: string;
+  createdAt: string;
+}
 
 export default function Profile() {
   const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const userData = await SecureStore.getItemAsync("userData");
+        if (userData) {
+          setUser(JSON.parse(userData));
+        }
+      } catch (error) {
+        console.log("Error loading user data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadUserData();
+  }, []);
+
+  const handleLogout = async () => {
+    await SecureStore.deleteItemAsync("authToken");
+    await SecureStore.deleteItemAsync("userData");
+    router.replace("/login");
+  };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[style.home, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#000" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={style.home}>
       <Navbar />
       <View style={style.profileContainer}>
         <View style={style.profileHeader}>
           <Image
-            source={require("@/assets/images/user.png")}
+            source={user?.profileImage 
+              ? { uri: `${BASE_URL}${user.profileImage}` }
+              : require("@/assets/images/user.png")
+            }
             style={style.profileImage}
           />
-          <Text style={style.profileName}>John Doe</Text>
-          <Text style={style.profileEmail}>john.doe@example.com</Text>
+          <Text style={style.profileName}>{user?.username || "Guest"}</Text>
+          <Text style={style.profileEmail}>{user?.email || ""}</Text>
         </View>
       </View>
 
@@ -44,7 +92,7 @@ export default function Profile() {
           <Ionicons name="chevron-forward" size={20} color="#000" style={{marginLeft: "auto"}}/>
         </TouchableOpacity>
 
-        <TouchableOpacity style={style.logoutButton} onPress={() => router.push("/login")}>
+        <TouchableOpacity style={style.logoutButton} onPress={handleLogout}>
             <Feather name="log-out" size={20} color="white" />
             <Text style={{color: "#fff"}}>Logout</Text>
         </TouchableOpacity>

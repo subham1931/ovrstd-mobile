@@ -1,7 +1,8 @@
 import axios from 'axios';
 import * as SecureStore from "expo-secure-store"
 
-export const BASE_URL = 'http://localhost:3000/'
+// export const BASE_URL = 'http://localhost:3000/'
+export const BASE_URL = 'https://ovrstd-server.onrender.com/'
 
 const api = axios.create({
     baseURL:BASE_URL,
