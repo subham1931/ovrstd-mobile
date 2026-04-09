@@ -5,8 +5,8 @@ import { useRouter } from "expo-router";
 import { Text, View, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
-import { useEffect, useState } from "react";
-import { BASE_URL } from "@/api/config";
+import { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 
 interface User {
   _id: string;
@@ -22,21 +22,24 @@ export default function Profile() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const userData = await SecureStore.getItemAsync("userData");
-        if (userData) {
-          setUser(JSON.parse(userData));
-        }
-      } catch (error) {
-        console.log("Error loading user data:", error);
-      } finally {
-        setIsLoading(false);
+  const loadUserData = useCallback(async () => {
+    try {
+      const userData = await SecureStore.getItemAsync("userData");
+      if (userData) {
+        setUser(JSON.parse(userData));
       }
-    };
-    loadUserData();
+    } catch (error) {
+      console.log("Error loading user data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadUserData();
+    }, [loadUserData])
+  );
 
   const handleLogout = async () => {
     await SecureStore.deleteItemAsync("authToken");
@@ -74,22 +77,22 @@ export default function Profile() {
 
       <View style={style.profileOverview}>
         <Text style={{fontSize: 16, fontWeight: "bold", color: "#000", fontFamily: "SNPro"}}>Account Overview</Text>
-        <TouchableOpacity style={style.profileButton}>
+        <TouchableOpacity style={style.profileButton} onPress={() => router.push("/(main)/edit-profile")}>
             <Feather name="user" size={20} color="#000" />
           <Text>Edit Profile</Text>
           <Ionicons name="chevron-forward" size={20} color="#000" style={{marginLeft: "auto"}}/>
         </TouchableOpacity>
-        <TouchableOpacity style={style.profileButton}>
+        <TouchableOpacity style={style.profileButton} onPress={() => router.push("/(main)/my-orders")}>
           <Feather name="shopping-bag" size={20} color="#000" />
           <Text>My Orders</Text>
           <Ionicons name="chevron-forward" size={20} color="#000" style={{marginLeft: "auto"}}/>
         </TouchableOpacity>
-        <TouchableOpacity style={style.profileButton}>
+        <TouchableOpacity style={style.profileButton} onPress={() => router.push("/(main)/my-address")}>
           <Feather name="map-pin" size={20} color="#000" />
           <Text>My Address</Text>
           <Ionicons name="chevron-forward" size={20} color="#000" style={{marginLeft: "auto"}}/>
         </TouchableOpacity>
-        <TouchableOpacity style={style.profileButton}>
+        <TouchableOpacity style={style.profileButton} onPress={() => router.push("/(main)/my-wishlist")}>
           <Feather name="heart" size={20} color="#000" />
           <Text>My Wishlist</Text>
           <Ionicons name="chevron-forward" size={20} color="#000" style={{marginLeft: "auto"}}/>
