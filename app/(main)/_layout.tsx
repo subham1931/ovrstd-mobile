@@ -14,11 +14,11 @@ export default function MainLayout() {
                 }} 
             />
             <Tabs.Screen 
-                name="categories" 
+                name="ai-studio" 
                 options={{ 
-                    title: "Categories",
+                    title: "AI Studio",
                     tabBarIcon: ({ color, size, focused }) => (
-                        <Ionicons name={focused ? "grid" : "grid-outline"} size={size} color={color} />
+                        <Ionicons name={focused ? "sparkles" : "sparkles-outline"} size={size} color={color} />
                     )
                 }} 
             />
