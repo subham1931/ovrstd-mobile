@@ -57,3 +57,18 @@ export const getProfile = async () => {
     const res = await api.get("/auth/profile");
     return res.data;
 };
+
+export const getCart = async () => {
+    const res = await api.get("/auth/cart");
+    return res.data;
+};
+
+export const addToCart = async (productId, quantity) => {
+    const res = await api.post("/auth/cart", { productId, quantity });
+    return res.data;
+};
+
+export const removeFromCart = async (productId) => {
+    const res = await api.post(`/auth/cart/${productId}`, { productId });
+    return res.data;
+};
