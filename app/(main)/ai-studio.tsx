@@ -19,14 +19,14 @@ import * as ImagePicker from "expo-image-picker";
 const { width } = Dimensions.get("window");
 
 type DesignMode = "image" | "text" | "ai";
+const SHIRT_PREVIEW_URI =
+    "https://skream.in/cdn/shop/files/skreamoversizedt-shirtBLACKBACKOSTEE2_977590fd-fb91-4519-bea7-6c387e04f811.webp?v=1740749882&width=1946";
 
 export default function AIStudio() {
     const [designMode, setDesignMode] = useState<DesignMode>("ai");
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [designText, setDesignText] = useState("");
     const [aiPrompt, setAiPrompt] = useState("");
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -42,8 +42,15 @@ export default function AIStudio() {
         }
     };
 
+    const removeSelectedImage = () => {
+        setSelectedImage(null);
+        if (designMode === "image") {
+            setDesignMode("ai");
+        }
+    };
+
     const hasDesign = selectedImage || designText.trim() || aiPrompt.trim();
-    const canPlaceOrder = hasDesign && title.trim();
+    const canPlaceOrder = hasDesign;
 
     return (
         <SafeAreaView style={styles.container}>
@@ -60,14 +67,20 @@ export default function AIStudio() {
                     {/* T-Shirt Preview */}
                     <View style={styles.previewSection}>
                         <View style={styles.tshirtContainer}>
-                            {/* Black T-Shirt SVG Representation */}
-                            <View style={styles.tshirtShape}>
-                                <View style={styles.tshirtNeck} />
-                                <View style={styles.tshirtBody}>
-                                    <View style={styles.tshirtSleeveLeft} />
-                                    <View style={styles.tshirtSleeveRight} />
-                                </View>
-                            </View>
+                            {selectedImage && (
+                                <TouchableOpacity
+                                    style={styles.removeImageBtn}
+                                    onPress={removeSelectedImage}
+                                    activeOpacity={0.85}
+                                >
+                                    <Ionicons name="close" size={18} color="#fff" />
+                                </TouchableOpacity>
+                            )}
+                            <Image
+                                source={{ uri: SHIRT_PREVIEW_URI }}
+                                style={styles.tshirtImage}
+                                resizeMode="contain"
+                            />
                             {/* Design Overlay */}
                             <View style={styles.designOverlay}>
                                 {selectedImage && designMode === "image" && (
@@ -85,7 +98,9 @@ export default function AIStudio() {
                                 {aiPrompt && designMode === "ai" && (
                                     <View style={styles.aiPlaceholder}>
                                         <Ionicons name="sparkles" size={24} color="#fff" />
-                                        <Text style={styles.aiPlaceholderText}>AI Design</Text>
+                                        <Text style={styles.aiPlaceholderText} numberOfLines={2}>
+                                            {aiPrompt}
+                                        </Text>
                                     </View>
                                 )}
                                 {!hasDesign && (
@@ -178,31 +193,6 @@ export default function AIStudio() {
                         </View>
                     )}
 
-                    {/* Title & Description */}
-                    <View style={styles.inputSection}>
-                        <Text style={styles.label}>Title</Text>
-                        <TextInput
-                            style={styles.singleInput}
-                            placeholder="Give your design a name"
-                            placeholderTextColor="#9CA3AF"
-                            value={title}
-                            onChangeText={setTitle}
-                        />
-                    </View>
-
-                    <View style={styles.inputSection}>
-                        <Text style={styles.label}>Description</Text>
-                        <TextInput
-                            style={styles.textInput}
-                            placeholder="Describe your custom t-shirt..."
-                            placeholderTextColor="#9CA3AF"
-                            value={description}
-                            onChangeText={setDescription}
-                            multiline
-                            numberOfLines={3}
-                        />
-                    </View>
-
                     {/* Price Info */}
                     <View style={styles.priceCard}>
                         <View>
@@ -237,68 +227,46 @@ const styles = StyleSheet.create({
         paddingBottom: 30,
     },
     previewSection: {
+        width: "100%",
+        height: width - 24,
         alignItems: "center",
+        justifyContent: "center",
         marginVertical: 16,
+        backgroundColor: "#ECECEC",
+        borderRadius: 14,
+        overflow: "hidden",
     },
     tshirtContainer: {
-        width: width - 80,
-        height: width - 80,
+        width: "100%",
+        height: "100%",
         position: "relative",
         justifyContent: "center",
         alignItems: "center",
     },
-    tshirtShape: {
-        width: "100%",
-        height: "100%",
+    removeImageBtn: {
+        position: "absolute",
+        top: 14,
+        right: 14,
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        backgroundColor: "rgba(17,24,39,0.85)",
         alignItems: "center",
+        justifyContent: "center",
+        zIndex: 10,
     },
-    tshirtNeck: {
-        width: 50,
-        height: 20,
-        borderBottomLeftRadius: 25,
-        borderBottomRightRadius: 25,
-        backgroundColor: "#F5F5F5",
-        marginTop: 10,
-    },
-    tshirtBody: {
-        width: "85%",
-        height: "75%",
-        backgroundColor: "#1a1a1a",
-        borderRadius: 8,
-        borderTopLeftRadius: 40,
-        borderTopRightRadius: 40,
-        marginTop: -10,
-        position: "relative",
-    },
-    tshirtSleeveLeft: {
-        position: "absolute",
-        left: -30,
-        top: 0,
-        width: 50,
-        height: 60,
-        backgroundColor: "#1a1a1a",
-        borderTopLeftRadius: 20,
-        borderBottomLeftRadius: 20,
-        transform: [{ rotate: "-20deg" }],
-    },
-    tshirtSleeveRight: {
-        position: "absolute",
-        right: -30,
-        top: 0,
-        width: 50,
-        height: 60,
-        backgroundColor: "#1a1a1a",
-        borderTopRightRadius: 20,
-        borderBottomRightRadius: 20,
-        transform: [{ rotate: "20deg" }],
+    tshirtImage: {
+        width: "92%",
+        height: "92%",
     },
     designOverlay: {
         position: "absolute",
-        width: 120,
-        height: 140,
-        top: "28%",
+        width: "28%",
+        height: "28%",
+        top: "36%",
         justifyContent: "center",
         alignItems: "center",
+        // backgroundColor: "red",
     },
     designImage: {
         width: "100%",
@@ -312,7 +280,16 @@ const styles = StyleSheet.create({
         fontFamily: "SNPro",
     },
     aiPlaceholder: {
+        width: "100%",
+        minHeight: 90,
+        borderRadius: 12,
+        backgroundColor: "rgba(255,255,255,0.08)",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.15)",
         alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 10,
+        paddingVertical: 8,
         gap: 4,
     },
     aiPlaceholderText: {
@@ -320,15 +297,16 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontFamily: "SNPro",
         fontWeight: "600",
+        textAlign: "center",
     },
     emptyDesign: {
         alignItems: "center",
         justifyContent: "center",
-        width: 100,
-        height: 100,
-        borderRadius: 8,
+        width: 120,
+        height: 120,
+        borderRadius: 12,
         borderWidth: 2,
-        borderColor: "#444",
+        borderColor: "#535353",
         borderStyle: "dashed",
     },
     emptyDesignText: {
@@ -374,16 +352,6 @@ const styles = StyleSheet.create({
         color: "#374151",
         fontFamily: "SNPro",
         marginBottom: 8,
-    },
-    singleInput: {
-        backgroundColor: "#F9FAFB",
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: "#E5E7EB",
-        padding: 14,
-        fontSize: 15,
-        fontFamily: "SNPro",
-        color: "#000",
     },
     textInput: {
         backgroundColor: "#F9FAFB",
